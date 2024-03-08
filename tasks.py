@@ -10,5 +10,5 @@ def first():
 
     with Session(engine) as session:
         result = session.execute(sql_query).fetchall()
-
+    result = [r[0] for r in result]
     return result
