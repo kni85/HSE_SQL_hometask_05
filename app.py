@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, union_all
 from sqlalchemy.orm import Session
 
 from db import tables, engine
@@ -89,6 +89,52 @@ def fifth_task() -> list:
               for r in result]
     return result
 
+@app.get("/sixth_task")
+def sixth_task() -> list:
+
+    b = tables['bookings'].alias()
+    m = tables['members'].alias()
+    f = tables['facilities'].alias()
+
+    data1 = (select(m.c.memid,
+                    func.concat(m.c.firstname, ' ', m.c.surname).label('member'),
+                    b.c.slots,
+                    f.c.name.label('facility'),
+                    f.c.membercost,
+                    f.c.guestcost)
+             .join(m, m.c.memid == b.c.memid)
+             .join(f, f.c.facid == b.c.facid)
+             .where(and_(b.c.starttime >= '2012-09-14',
+                         b.c.starttime < '2012-09-15'))
+             .cte())
+
+    members = (select(data1.c.member,
+                      data1.c.facility,
+                      (data1.c.slots * data1.c.membercost).label('cost'))
+               .where(data1.c.memid != 0))
+
+    guests = (select(data1.c.member,
+                     data1.c.facility,
+                     (data1.c.slots * data1.c.guestcost).label('cost'))
+              .where(data1.c.memid == 0))
+
+    costs = union_all(guests, members).cte()
+
+    sql_query = (select(costs)
+                 .where(costs.c.cost > 30)
+                 .order_by(costs.c.cost.desc()))
+
+    with Session(engine) as session:
+        result = session.execute(sql_query).fetchall()
+
+    # result = [r._asdict() for r in result]
+    result = [{'member':  r[0],
+               'facility': r[1],
+               'cost': float(r[2])}
+              for r in result]
+
+    return result
+
 if __name__ == '__main__':
 
     resp = first_task()
@@ -109,5 +155,9 @@ if __name__ == '__main__':
 
     resp = fifth_task()
     print('Fifth task responds with the following:')
+    print(resp)
+
+    resp = sixth_task()
+    print('Sixth task responds with the following:')
     print(resp)
 
