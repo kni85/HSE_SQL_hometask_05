@@ -12,3 +12,7 @@ def first():
         result = session.execute(sql_query).fetchall()
     result = [r[0] for r in result]
     return result
+
+if __name__ == '__main__':
+    resp = first()
+    print(resp)
