@@ -6,7 +6,7 @@ from db import tables, engine
 
 app = FastAPI()
 @app.get("/first_task")
-def first() -> list:
+def first_task() -> list:
     sql_query = select(tables['members'].c['surname']).distinct()
     sql_query = sql_query.where(tables['members'].c.memid != 0)
     sql_query = sql_query.order_by(tables['members'].c['surname']).limit(10)
@@ -15,6 +15,26 @@ def first() -> list:
     result = [r[0] for r in result]
     return result
 
+@app.get("/second_task")
+def second_task() -> list:
+    sql_query = select(
+        tables['members'].c.firstname,
+        tables['members'].c.surname,
+        tables['members'].c.joindate
+    )
+    sql_query = sql_query.order_by(tables['members'].c.joindate.desc())
+    sql_query = sql_query.limit(1)
+    with Session(engine) as session:
+        result = session.execute(sql_query).fetchall()
+    result = [{
+        'firstname':  r[0],
+        'surname': r[1],
+        'joindate': r[2]
+    } for r in result]
+    return result
+
 if __name__ == '__main__':
-    resp = first()
+    # resp = first_task()
+    resp = second_task()
     print(resp)
+
