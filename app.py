@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
@@ -51,9 +52,30 @@ def third_task() -> list:
               for r in result]
     return result
 
+@app.get("/fourth_task")
+def fourth_task() -> list:
+    m = tables['members'].alias()
+    mm = tables['members'].alias()
+
+    sql_query = (select(m.c.firstname, m.c.surname, mm.c.firstname, mm.c.surname)
+                 .join(mm, m.c.recommendedby == mm.c.memid, isouter=True)
+                 .where(m.c.memid != 0)
+                 .order_by(m.c.firstname, m.c.surname))
+
+    with Session(engine) as session:
+        result = session.execute(sql_query).fetchall()
+
+    result = [{'name':  r[0],
+               'surname': r[1],
+               'rec_by_name': r[2],
+               'rec_by_surname': r[3]}
+              for r in result]
+    return result
+
 if __name__ == '__main__':
     # resp = first_task()
     # resp = second_task()
-    resp = third_task()
+    # resp = third_task()
+    resp = fourth_task()
     print(resp)
 
