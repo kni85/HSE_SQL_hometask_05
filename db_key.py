@@ -1,0 +1,1 @@
+URL = "postgresql://login:password@where/dbname?sslmode=require"
