@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.orm import Session
 
 from db import tables, engine
@@ -72,10 +72,42 @@ def fourth_task() -> list:
               for r in result]
     return result
 
+@app.get("/fifth_task")
+def fifth_task() -> list:
+    b = tables['bookings'].alias()
+    sql_query = (select(b.c.facid, func.sum(b.c.slots).label('total_sum'))
+                 .where(and_(b.c.starttime >= '2012-09-01',
+                             b.c.starttime < '2012-10-01'))
+                 .group_by(b.c.facid)
+                 .order_by('total_sum'))
+
+    with Session(engine) as session:
+        result = session.execute(sql_query).fetchall()
+
+    result = [{'facid':  r[0],
+               'Total slots': r[1]}
+              for r in result]
+    return result
+
 if __name__ == '__main__':
-    # resp = first_task()
-    # resp = second_task()
-    # resp = third_task()
+
+    resp = first_task()
+    print('First task responds with the following:')
+    print(resp)
+
+    resp = second_task()
+    print('Second task responds with the following:')
+    print(resp)
+
+    resp = third_task()
+    print('Third task responds with the following:')
+    print(resp)
+
     resp = fourth_task()
+    print('Fourth task responds with the following:')
+    print(resp)
+
+    resp = fifth_task()
+    print('Fifth task responds with the following:')
     print(resp)
 
