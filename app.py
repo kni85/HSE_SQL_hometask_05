@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from db import tables, engine
 
+from typing import List
+import models
+
 app = FastAPI()
+
 @app.get("/first_task")
 def first_task() -> list:
     sql_query = (select(tables['members'].c['surname'])
@@ -89,8 +93,8 @@ def fifth_task() -> list:
               for r in result]
     return result
 
-@app.get("/sixth_task")
-def sixth_task() -> list:
+@app.get("/sixth_task", response_model=List[models.sixth])
+def sixth_task():
 
     b = tables['bookings'].alias()
     m = tables['members'].alias()
@@ -126,12 +130,6 @@ def sixth_task() -> list:
 
     with Session(engine) as session:
         result = session.execute(sql_query).fetchall()
-
-    # result = [r._asdict() for r in result]
-    result = [{'member':  r[0],
-               'facility': r[1],
-               'cost': float(r[2])}
-              for r in result]
 
     return result
 
