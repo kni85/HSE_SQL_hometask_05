@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 
 from sqlalchemy import select, and_, func, union_all
 from sqlalchemy.orm import Session
@@ -122,26 +123,4 @@ def sixth_task():
 
 if __name__ == '__main__':
 
-    resp = first_task()
-    print('First task responds with the following:')
-    print(resp)
-
-    resp = second_task()
-    print('Second task responds with the following:')
-    print(resp)
-
-    resp = third_task()
-    print('Third task responds with the following:')
-    print(resp)
-
-    resp = fourth_task()
-    print('Fourth task responds with the following:')
-    print(resp)
-
-    resp = fifth_task()
-    print('Fifth task responds with the following:')
-    print(resp)
-
-    resp = sixth_task()
-    print('Sixth task responds with the following:')
-    print(resp)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
